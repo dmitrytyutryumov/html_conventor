@@ -1,0 +1,16 @@
+FROM convertor_app
+
+RUN apk add --update --no-cache \
+        nginx supervisor \
+        libgcc libstdc++ libx11 libxml2 libxslt glib libxrender libxext libintl \
+        libcrypto1.1 libssl1.1 \
+        ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family \
+        postgresql-dev pcre gnupg1 \
+        git mercurial gcc musl-dev build-base linux-headers pcre-dev \
+        mailcap \
+        libffi-dev libxml2-dev libxslt-dev \
+    && pip install --src /usr/src --no-cache-dir uwsgi pipenv poetry
+
+COPY --from=surnet/alpine-wkhtmltopdf:3.10-0.12.5-small /bin/wkhtmltopdf /bin/wkhtmltopdf
+
+CMD ["celery", "-A", "site_parser", "worker", "-Q", "convert_page"]

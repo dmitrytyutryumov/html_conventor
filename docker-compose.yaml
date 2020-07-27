@@ -1,0 +1,63 @@
+version: "3"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: coventor_rabbitmq
+    volumes:
+      - /tmp/rabbit-conventor:/home
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: always
+    networks:
+      - convertor_network
+    env_file:
+      - .env
+
+  app:
+    image: convertor_app
+    container_name: convertor_app
+    volumes:
+      - ./site_parser/media:/usr/src/app/media
+      - ./db.sqlite3:/usr/src/db.sqlite3
+    ports:
+      - 8000:8000
+    depends_on:
+      - rabbitmq
+    links:
+      - rabbitmq:rabbitmq
+    networks:
+      - convertor_network
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    restart: on-failure
+
+  celery:
+    image: convertor_celery
+    container_name: conventor_celery
+    volumes:
+      - ./site_parser/media:/usr/src/app/media
+      - ./db.sqlite3:/usr/src/db.sqlite3
+    depends_on:
+      - rabbitmq
+    links:
+      - rabbitmq:rabbitmq
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    networks:
+      - convertor_network
+    restart: on-failure
+    command: "celery -A site_parser worker -Q convert_page"
+
+volumes:
+  rabbitmq:
+  app:
+
+networks:
+  convertor_network:
+    driver: bridge
