@@ -4,7 +4,7 @@ asgiref==3.2.10
 billiard==3.6.3.0
 celery==4.4.6
 click==7.1.2
-Django==3.0.8
+Django==3.1.6
 django-filter==2.3.0
 djangorestframework==3.11.0
 future==0.18.2
